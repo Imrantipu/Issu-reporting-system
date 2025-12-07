@@ -4,6 +4,7 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import admin from 'firebase-admin';
+import issuesRouter from './routes/issues.js';
 
 dotenv.config();
 
@@ -68,6 +69,8 @@ app.get('/', (req, res) => {
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: process.env.APP_NAME || 'Public Infrastructure Issue Reporting' });
 });
+
+app.use('/issues', issuesRouter);
 
 app.use((err, req, res, next) => {
   console.error('[error]', err.message);
