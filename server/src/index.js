@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import admin from 'firebase-admin';
 import issuesRouter from './routes/issues.js';
+import adminRouter from './routes/admin.js';
+import staffRouter from './routes/staff.js';
 
 dotenv.config();
 
@@ -71,6 +73,8 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/issues', issuesRouter);
+app.use('/admin', adminRouter);
+app.use('/staff', staffRouter);
 
 app.use((err, req, res, next) => {
   console.error('[error]', err.message);
