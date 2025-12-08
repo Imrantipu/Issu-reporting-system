@@ -63,9 +63,12 @@ router.get('/', verifyAuth, async (req, res) => {
     const page = parseInt(req.query.page, 10) || 1;
     const limit = Math.min(parseInt(req.query.limit, 10) || 10, 50);
     const skip = (page - 1) * limit;
-    const { q, category, status, priority } = req.query;
+    const { q, category, status, priority, mine } = req.query;
 
     const filter = {};
+    if (mine === 'true') {
+      filter.createdBy = req.user._id;
+    }
     if (category) filter.category = category;
     if (status && ISSUE_STATUSES.includes(status)) filter.status = status;
     if (priority && ISSUE_PRIORITIES.includes(priority)) filter.priority = priority;

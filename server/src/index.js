@@ -1,12 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import morgan from 'morgan';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import admin from 'firebase-admin';
 import issuesRouter from './routes/issues.js';
 import adminRouter from './routes/admin.js';
 import staffRouter from './routes/staff.js';
+import paymentsRouter from './routes/payments.js';
+import usersRouter from './routes/users.js';
 
 dotenv.config();
 
@@ -37,7 +38,6 @@ app.use(cors({
   },
   credentials: true
 }));
-app.use(morgan('dev'));
 
 // Firebase Admin init
 try {
@@ -75,6 +75,8 @@ app.get('/health', (req, res) => {
 app.use('/issues', issuesRouter);
 app.use('/admin', adminRouter);
 app.use('/staff', staffRouter);
+app.use('/payments', paymentsRouter);
+app.use('/users', usersRouter);
 
 app.use((err, req, res, next) => {
   console.error('[error]', err.message);

@@ -24,6 +24,36 @@ const allowedTransitions = {
 
 router.use(verifyAuth, requireRole('staff'));
 
+// Get staff statistics
+router.get('/stats', async (req, res) => {
+  try {
+    const staffId = req.user._id;
+
+    const assignedIssuesCount = await Issue.countDocuments({ assignedStaff: staffId });
+    const resolvedIssuesCount = await Issue.countDocuments({ assignedStaff: staffId, status: 'resolved' });
+    const inProgressCount = await Issue.countDocuments({ assignedStaff: staffId, status: { $in: ['in-progress', 'working'] } });
+    const pendingCount = await Issue.countDocuments({ assignedStaff: staffId, status: 'pending' });
+
+    // Today's tasks (issues updated today)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todaysTasks = await Issue.countDocuments({
+      assignedStaff: staffId,
+      updatedAt: { $gte: today }
+    });
+
+    return res.json({
+      assignedIssuesCount,
+      resolvedIssuesCount,
+      inProgressCount,
+      pendingCount,
+      todaysTasks
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+});
+
 // List assigned issues for staff
 router.get('/issues', async (req, res) => {
   try {
