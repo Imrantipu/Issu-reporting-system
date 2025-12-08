@@ -1,20 +1,37 @@
 // src/pages/Shared/Navbar/Navbar.jsx
 
-import React from 'react';
-// 💡 IMPORTANT: Ensure NavLink and Link are imported from 'react-router-dom' 
-// if you are using createBrowserRouter, as shown in the updated code below.
-import { NavLink, Link } from 'react-router'; 
-import useAuth from '../../../hooks/useAuth'; 
+import React, { useEffect, useState } from 'react';
+import { NavLink, Link, useNavigate } from 'react-router';
+import useAuth from '../../../hooks/useAuth';
+import apiClient from '../../../lib/apiClient';
+import toast from 'react-hot-toast';
 
 const Navbar = () => {
-    // 💡 EXTRACTING USER AND LOGOUT FROM useAuth() HOOK
     const { user, logOut, loading } = useAuth();
+    const [dbUser, setDbUser] = useState(null);
+    const [fetchingUser, setFetchingUser] = useState(false);
+    const navigate = useNavigate();
 
-    // --- TEMPORARY ROLE LOGIC ---
-    // Since Firebase user object doesn't include the MongoDB role,
-    // we assume 'citizen' for now. UPDATE THIS when you fetch the real role.
-    const tempUserRole = 'citizen'; 
-    // --- END TEMPORARY LOGIC ---
+    // Fetch user from database to get role
+    useEffect(() => {
+        const fetchUser = async () => {
+            if (user) {
+                setFetchingUser(true);
+                try {
+                    const response = await apiClient.get('/users/me');
+                    setDbUser(response.data);
+                } catch (error) {
+                    console.error('Failed to fetch user:', error);
+                } finally {
+                    setFetchingUser(false);
+                }
+            } else {
+                setDbUser(null);
+            }
+        };
+
+        fetchUser();
+    }, [user]);
 
     const navItems = [
         { to: '/', label: 'Home' },
@@ -23,22 +40,31 @@ const Navbar = () => {
         { to: '/resources', label: 'Resources' },
     ];
 
-    const handleDashboardClick = () => {
-        // Determine the correct dashboard route based on the assumed/real role
-        let dashboardPath = '/dashboard';
-        if (tempUserRole === 'admin') dashboardPath = '/dashboard/admin';
-        else if (tempUserRole === 'staff') dashboardPath = '/dashboard/staff';
-        else if (tempUserRole === 'citizen') dashboardPath = '/dashboard/citizen';
-        
-        return dashboardPath;
+    const getDashboardPath = () => {
+        if (!dbUser) return '/dashboard/citizen';
+        if (dbUser.role === 'admin') return '/dashboard/admin';
+        if (dbUser.role === 'staff') return '/dashboard/staff';
+        return '/dashboard/citizen';
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logOut();
+            setDbUser(null);
+            toast.success('Logged out successfully');
+            navigate('/');
+        } catch (error) {
+            console.error('Logout error:', error);
+            toast.error('Logout failed');
+        }
     };
     
-    // Optional: Show a simple spinner while checking auth status
-    if (loading) {
+    // Show spinner while checking auth status
+    if (loading || fetchingUser) {
         return (
             <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl">
                 <div className="section-shell">
-                    <div className="navbar rounded-2xl border border-white/60 bg-white/70 shadow-lg shadow-slate-200/70">
+                    <div className="navbar mt-4 rounded-2xl border border-white/60 bg-white/70 shadow-lg shadow-slate-200/70">
                         <span className="loading loading-dots loading-md mx-auto text-cyan-600" />
                     </div>
                 </div>
@@ -126,23 +152,36 @@ const Navbar = () => {
                                     </div>
                                 </div>
                                 <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] w-60 rounded-2xl border border-white/60 bg-white/95 p-3 shadow-xl shadow-slate-200/70 backdrop-blur">
-                                    {/* User Name */}
+                                    {/* User Name & Role */}
                                     <li className="menu-title">
-                                        <span className='text-md font-semibold text-slate-900'>
-                                            {user.displayName || "Citizen"}
-                                        </span>
+                                        <div className="flex items-center justify-between">
+                                            <span className='text-md font-semibold text-slate-900'>
+                                                {dbUser?.name || user.displayName || "User"}
+                                            </span>
+                                            {dbUser?.premium && (
+                                                <span className="badge badge-xs badge-accent">Premium</span>
+                                            )}
+                                        </div>
+                                        {dbUser?.role && (
+                                            <span className={`badge badge-xs mt-1 ${
+                                                dbUser.role === 'admin' ? 'badge-error' :
+                                                dbUser.role === 'staff' ? 'badge-warning' :
+                                                'badge-info'
+                                            }`}>
+                                                {dbUser.role}
+                                            </span>
+                                        )}
                                     </li>
-                                    
+
                                     {/* Dashboard Link */}
                                     <li>
-                                        <Link to={handleDashboardClick()} className="justify-between rounded-lg px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100">
+                                        <Link to={getDashboardPath()} className="justify-between rounded-lg px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100">
                                             Dashboard
                                         </Link>
                                     </li>
-                                    
+
                                     {/* Logout Button */}
-                                    {/* 💡 IMPORTANT: Call the actual logOut function */}
-                                    <li><a onClick={logOut} className="rounded-lg px-3 py-2 font-semibold text-rose-600 hover:bg-rose-50">Logout</a></li> 
+                                    <li><a onClick={handleLogout} className="rounded-lg px-3 py-2 font-semibold text-rose-600 hover:bg-rose-50">Logout</a></li>
                                 </ul>
                             </div>
                         ) : (
