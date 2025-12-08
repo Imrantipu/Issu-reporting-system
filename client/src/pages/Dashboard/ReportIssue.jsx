@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import apiClient from '../../lib/apiClient';
+import toast from 'react-hot-toast';
 
 const categories = [
   'Road Safety',
@@ -23,7 +24,6 @@ const ReportIssue = () => {
     location: '',
     imageFile: null,
   });
-  const [feedback, setFeedback] = useState('');
   const [uploading, setUploading] = useState(false);
 
   const createIssue = useMutation({
@@ -32,13 +32,15 @@ const ReportIssue = () => {
       return res.data;
     },
     onSuccess: () => {
-      setFeedback('Issue created successfully.');
+      toast.success('Issue created successfully!');
       queryClient.invalidateQueries({ queryKey: ['issues'] });
-      navigate('/all-issues');
+      queryClient.invalidateQueries({ queryKey: ['my-issues'] });
+      queryClient.invalidateQueries({ queryKey: ['user-stats'] });
+      navigate('/dashboard/citizen/my-issues');
     },
     onError: (err) => {
       const msg = err?.response?.data?.message || 'Failed to create issue.';
-      setFeedback(msg);
+      toast.error(msg);
     },
   });
 
@@ -62,9 +64,8 @@ const ReportIssue = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFeedback('');
     if (!form.title || !form.description) {
-      setFeedback('Title and description are required.');
+      toast.error('Title and description are required.');
       return;
     }
 
@@ -74,7 +75,7 @@ const ReportIssue = () => {
         setUploading(true);
         imageUrl = await uploadImage(form.imageFile);
       } catch (err) {
-        setFeedback('Image upload failed. Please try again.');
+        toast.error('Image upload failed. Please try again.');
         setUploading(false);
         return;
       } finally {
@@ -98,12 +99,6 @@ const ReportIssue = () => {
         <h1 className="text-3xl font-bold text-slate-900">Submit a new public issue</h1>
         <p className="text-slate-600">Add details so staff can triage quickly. You can edit while status is pending.</p>
       </div>
-
-      {feedback && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
-          {feedback}
-        </div>
-      )}
 
       <form onSubmit={handleSubmit} className="glass-panel space-y-4 rounded-3xl border border-slate-100/70 bg-white/85 p-6 shadow-xl shadow-cyan-200/40">
         <div className="grid gap-4 md:grid-cols-2">

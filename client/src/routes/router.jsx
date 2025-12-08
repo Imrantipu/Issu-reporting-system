@@ -12,15 +12,16 @@ import NotFound from "../pages/NotFound";
 import PrivateRoute from "./PrivateRoute";
 import RoleRoute from "./RoleRoute";
 
-// Dashboard Pages - will create these next
-const CitizenDashboard = () => <div>Citizen Dashboard - Coming Soon</div>;
-const MyIssues = () => <div>My Issues - Coming Soon</div>;
-const ReportIssue = () => <div>Report Issue - Coming Soon</div>;
-const CitizenProfile = () => <div>Citizen Profile - Coming Soon</div>;
+// Citizen Dashboard Pages
+import CitizenDashboard from "../pages/Dashboard/CitizenDashboard";
+import MyIssues from "../pages/Dashboard/MyIssues";
+import ReportIssue from "../pages/Dashboard/ReportIssue";
+import CitizenProfile from "../pages/Dashboard/CitizenProfile";
 
-const StaffDashboard = () => <div>Staff Dashboard - Coming Soon</div>;
-const AssignedIssues = () => <div>Assigned Issues - Coming Soon</div>;
-const StaffProfile = () => <div>Staff Profile - Coming Soon</div>;
+// Staff Dashboard Pages
+import StaffDashboard from "../pages/Dashboard/StaffDashboard";
+import AssignedIssues from "../pages/Dashboard/AssignedIssues";
+import StaffProfile from "../pages/Dashboard/StaffProfile";
 
 const AdminDashboard = () => <div>Admin Dashboard - Coming Soon</div>;
 const AdminAllIssues = () => <div>Admin All Issues - Coming Soon</div>;
