@@ -23,12 +23,13 @@ import StaffDashboard from "../pages/Dashboard/StaffDashboard";
 import AssignedIssues from "../pages/Dashboard/AssignedIssues";
 import StaffProfile from "../pages/Dashboard/StaffProfile";
 
-const AdminDashboard = () => <div>Admin Dashboard - Coming Soon</div>;
-const AdminAllIssues = () => <div>Admin All Issues - Coming Soon</div>;
-const ManageUsers = () => <div>Manage Users - Coming Soon</div>;
-const ManageStaff = () => <div>Manage Staff - Coming Soon</div>;
-const Payments = () => <div>Payments - Coming Soon</div>;
-const AdminProfile = () => <div>Admin Profile - Coming Soon</div>;
+// Admin Dashboard Pages
+import AdminDashboard from "../pages/Dashboard/AdminDashboard";
+import AdminAllIssues from "../pages/Dashboard/AdminAllIssues";
+import ManageUsers from "../pages/Dashboard/ManageUsers";
+import ManageStaff from "../pages/Dashboard/ManageStaff";
+import Payments from "../pages/Dashboard/Payments";
+import AdminProfile from "../pages/Dashboard/AdminProfile";
 
 export const router = createBrowserRouter([
   {
