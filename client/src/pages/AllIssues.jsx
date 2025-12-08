@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAuth from '../hooks/useAuth';
 import apiClient from '../lib/apiClient';
+import toast from 'react-hot-toast';
 
 const statusLabels = {
   pending: 'Pending',
@@ -32,28 +33,35 @@ const badgeClasses = (type, value) => {
 const AllIssues = () => {
   const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
-  const [feedback, setFeedback] = useState('');
+  const [page, setPage] = useState(1);
+  const limit = 12;
 
   const { data, isLoading, isError, error } = useQuery({
-    queryKey: ['issues', { searchTerm, categoryFilter, statusFilter, priorityFilter }],
-    enabled: !!user && !authLoading,
+    queryKey: ['issues', { searchTerm, categoryFilter, statusFilter, priorityFilter, page }],
     queryFn: async () => {
       const params = {
         q: searchTerm || undefined,
         category: categoryFilter !== 'All' ? categoryFilter : undefined,
         status: statusFilter !== 'All' ? statusFilter : undefined,
         priority: priorityFilter !== 'All' ? priorityFilter.toLowerCase() : undefined,
-        limit: 50,
+        page,
+        limit,
       };
       const res = await apiClient.get('/issues', { params });
       return res.data;
     },
   });
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setPage(1);
+  }, [searchTerm, categoryFilter, statusFilter, priorityFilter]);
 
   const issues = useMemo(() => {
     const list = data?.data || [];
@@ -78,25 +86,35 @@ const AllIssues = () => {
       return res.data;
     },
     onSuccess: (_, id) => {
-      setFeedback('Upvote added.');
+      toast.success('Upvote added successfully!');
       queryClient.invalidateQueries({ queryKey: ['issues'] });
       queryClient.invalidateQueries({ queryKey: ['issue', id] });
     },
     onError: (err) => {
-      const msg = err?.response?.data?.message || 'Upvote failed.';
-      setFeedback(msg);
+      const msg = err?.response?.data?.message || 'Upvote failed';
+      toast.error(msg);
     },
   });
 
   const handleUpvote = (issue) => {
-    setFeedback('');
-    if (!user) return;
-    if (issue.createdBy?.email && issue.createdBy.email === user.email) {
-      setFeedback('You cannot upvote your own issue.');
+    // Redirect to login if not authenticated
+    if (!user) {
+      toast.error('Please login to upvote');
+      navigate('/login', { state: `/issues/${issue.id}` });
       return;
     }
+
+    // Prevent self-upvote
+    if (issue.createdBy?._id === user.uid || issue.createdBy?.email === user.email) {
+      toast.error('You cannot upvote your own issue');
+      return;
+    }
+
     upvoteMutation.mutate(issue.id);
   };
+
+  const totalPages = Math.ceil((data?.total || 0) / limit);
+  const showPagination = totalPages > 1;
 
   return (
     <div className="space-y-8">
@@ -163,12 +181,6 @@ const AllIssues = () => {
           </select>
         </div>
       </div>
-
-      {feedback && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
-          {feedback}
-        </div>
-      )}
 
       {isLoading && (
         <div className="flex items-center justify-center py-10">
@@ -247,6 +259,65 @@ const AllIssues = () => {
           {issues.length === 0 && (
             <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600">
               No issues match your filters yet.
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {showPagination && (
+            <div className="flex items-center justify-center gap-2 pt-6">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span aria-hidden>←</span>
+                Previous
+              </button>
+
+              <div className="flex items-center gap-2">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (page <= 3) {
+                    pageNum = i + 1;
+                  } else if (page >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = page - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPage(pageNum)}
+                      className={`h-10 w-10 rounded-full text-sm font-semibold transition ${
+                        page === pageNum
+                          ? 'bg-slate-900 text-white shadow-lg shadow-cyan-200/60'
+                          : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-cyan-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <span aria-hidden>→</span>
+              </button>
+            </div>
+          )}
+
+          {/* Page Info */}
+          {data?.total > 0 && (
+            <div className="text-center text-sm text-slate-600">
+              Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, data.total)} of {data.total} issues
             </div>
           )}
         </>
