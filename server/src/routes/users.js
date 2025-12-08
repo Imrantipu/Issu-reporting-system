@@ -49,6 +49,13 @@ router.get('/me/stats', verifyAuth, async (req, res) => {
       { $group: { _id: null, total: { $sum: '$amount' } } }
     ]);
 
+    // Calculate total upvotes received across all user issues
+    const upvotesAggregation = await Issue.aggregate([
+      { $match: { createdBy: userId } },
+      { $project: { upvoteCount: { $size: '$upvotes' } } },
+      { $group: { _id: null, total: { $sum: '$upvoteCount' } } }
+    ]);
+
     return res.json({
       totalIssues,
       pendingIssues,
@@ -56,7 +63,8 @@ router.get('/me/stats', verifyAuth, async (req, res) => {
       resolvedIssues,
       closedIssues,
       totalPayments,
-      totalPaymentAmount: totalPaymentAmount[0]?.total || 0
+      totalPaymentAmount: totalPaymentAmount[0]?.total || 0,
+      totalUpvotesReceived: upvotesAggregation[0]?.total || 0
     });
   } catch (err) {
     return res.status(500).json({ message: err.message });

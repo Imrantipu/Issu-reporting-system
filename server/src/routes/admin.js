@@ -17,11 +17,42 @@ const addTimeline = (issue, { status, message, user }) => {
 
 router.use(verifyAuth, requireRole('admin'));
 
+// Get all issues (admin view)
+router.get('/issues', async (req, res) => {
+  try {
+    const { status } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+
+    const issues = await Issue.find(filter)
+      .populate('createdBy', 'name email role photoUrl')
+      .populate('assignedStaff', 'name email role photoUrl')
+      .sort({ isBoosted: -1, priority: -1, createdAt: -1 });
+    return res.json({ data: issues });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+});
+
 // Get all citizen users
 router.get('/users', async (req, res) => {
   try {
-    const users = await User.find({ role: 'citizen' }).sort({ createdAt: -1 });
+    const users = await User.find().sort({ createdAt: -1 });
     return res.json(users);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+});
+
+// Get all payments (admin only)
+router.get('/payments', async (req, res) => {
+  try {
+    const Payment = (await import('../models/payment.js')).default;
+    const payments = await Payment.find()
+      .populate('user', 'name email role')
+      .populate('issue', 'title')
+      .sort({ createdAt: -1 });
+    return res.json(payments);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -45,11 +76,13 @@ router.get('/stats', async (req, res) => {
     ]);
 
     const totalUsers = await User.countDocuments({ role: 'citizen' });
+    const totalStaff = await User.countDocuments({ role: 'staff' });
     const premiumUsers = await User.countDocuments({ role: 'citizen', premium: true });
     const blockedUsers = await User.countDocuments({ blocked: true });
 
     const latestIssues = await Issue.find()
       .populate('createdBy', 'name email')
+      .populate('assignedStaff', 'name email')
       .sort({ createdAt: -1 })
       .limit(10);
 
@@ -69,8 +102,9 @@ router.get('/stats', async (req, res) => {
       pendingIssues,
       rejectedIssues,
       inProgressIssues,
-      totalPaymentAmount: totalPayments[0]?.total || 0,
+      totalPayments: totalPayments[0]?.total || 0,
       totalUsers,
+      totalStaff,
       premiumUsers,
       blockedUsers,
       latestIssues,
@@ -82,25 +116,27 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// Assign staff (only if none assigned yet, status remains pending)
-router.post('/issues/:id/assign-staff', async (req, res) => {
+// Assign staff (can reassign)
+router.patch('/issues/:id/assign', async (req, res) => {
   try {
     const { staffId } = req.body;
     if (!staffId) return res.status(400).json({ message: 'staffId is required' });
 
     const issue = await Issue.findById(req.params.id);
     if (!issue) return res.status(404).json({ message: 'Issue not found' });
-    if (issue.assignedStaff) return res.status(400).json({ message: 'Staff already assigned' });
 
     const staff = await User.findById(staffId);
     if (!staff || staff.role !== 'staff') {
       return res.status(400).json({ message: 'Invalid staff user' });
     }
 
+    const wasAssigned = !!issue.assignedStaff;
     issue.assignedStaff = staff._id;
     addTimeline(issue, {
       status: issue.status,
-      message: `Assigned to staff: ${staff.name || staff.email}`,
+      message: wasAssigned
+        ? `Reassigned to staff: ${staff.name || staff.email}`
+        : `Assigned to staff: ${staff.name || staff.email}`,
       user: req.user
     });
     await issue.save();
@@ -126,27 +162,19 @@ router.post('/issues/:id/reject', async (req, res) => {
   }
 });
 
-// Block user
-router.post('/users/:id/block', async (req, res) => {
+// Block/unblock user
+router.patch('/users/:id', async (req, res) => {
   try {
-    const target = await User.findById(req.params.id);
-    if (!target) return res.status(404).json({ message: 'User not found' });
-    target.blocked = true;
-    await target.save();
-    return res.json({ message: 'User blocked' });
-  } catch (err) {
-    return res.status(500).json({ message: err.message });
-  }
-});
+    const { blocked } = req.body;
+    if (typeof blocked !== 'boolean') {
+      return res.status(400).json({ message: 'blocked must be a boolean' });
+    }
 
-// Unblock user
-router.post('/users/:id/unblock', async (req, res) => {
-  try {
     const target = await User.findById(req.params.id);
     if (!target) return res.status(404).json({ message: 'User not found' });
-    target.blocked = false;
+    target.blocked = blocked;
     await target.save();
-    return res.json({ message: 'User unblocked' });
+    return res.json(target);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -163,7 +191,7 @@ router.get('/staff', async (req, res) => {
 });
 
 // Create staff (Firebase Auth + DB)
-router.post('/staff', async (req, res) => {
+router.post('/create-staff', async (req, res) => {
   try {
     const { name, email, password, phone, photoUrl } = req.body;
     if (!email || !password || password.length < 6) {
