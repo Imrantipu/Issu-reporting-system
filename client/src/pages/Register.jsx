@@ -1,60 +1,50 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import useAuth from '../hooks/useAuth';
 import { Link, useLocation, useNavigate } from 'react-router';
-
 import axios from 'axios';
 import SocialLogin from './SocialLogin';
+import toast from 'react-hot-toast';
 
 const Register = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const { registerUser, updateUserProfile } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
-    console.log('in register', location)
-
-
-    const handleRegistration = (data) => {
-
-        console.log('after register', data.photo[0]);
+    const handleRegistration = async (data) => {
+        setLoading(true);
         const profileImg = data.photo[0];
 
-        registerUser(data.email, data.password)
-            .then(result => {
-                console.log(result.user);
+        try {
+            // Register user
+            const result = await registerUser(data.email, data.password);
 
-                // 1. store the image in form data
-                const formData = new FormData();
-                formData.append('image', profileImg);
+            // Upload image
+            const formData = new FormData();
+            formData.append('image', profileImg);
+            const image_API_URL = `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_image_host_key}`;
+            const imageRes = await axios.post(image_API_URL, formData);
 
-                // 2. send the photo to store and get the ul
-                const image_API_URL = `https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_image_host_key}`
+            // Update profile
+            const userProfile = {
+                displayName: data.name,
+                photoURL: imageRes.data.data.url
+            };
+            await updateUserProfile(userProfile);
 
-                axios.post(image_API_URL, formData)
-                    .then(res => {
-                        console.log('after image upload', res.data.data.url)
-
-                        // update user profile to firebase
-                        const userProfile = {
-                            displayName: data.name,
-                            photoURL: res.data.data.url
-                        }
-
-                        updateUserProfile(userProfile)
-                            .then(() => {
-                                console.log('user profile updated done.')
-                                navigate(location.state || '/');
-                            })
-                            .catch(error => console.log(error))
-                    })
-
-
-
-            })
-            .catch(error => {
-                console.log(error)
-            })
+            toast.success('Registration successful! Welcome aboard!');
+            navigate(location.state || '/');
+        } catch (error) {
+            console.error(error);
+            const errorMessage = error.code === 'auth/email-already-in-use'
+                ? 'Email already in use'
+                : error.message || 'Registration failed';
+            toast.error(errorMessage);
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -140,9 +130,21 @@ const Register = () => {
                         }
                     </div>
 
-                    <button className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border-none bg-gradient-to-r from-cyan-500 to-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-200/70 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-100">
-                        Register
-                        <span aria-hidden className="text-base">↗</span>
+                    <button
+                        disabled={loading}
+                        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border-none bg-gradient-to-r from-cyan-500 to-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-200/70 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loading ? (
+                            <>
+                                <span className="loading loading-spinner loading-sm"></span>
+                                Registering...
+                            </>
+                        ) : (
+                            <>
+                                Register
+                                <span aria-hidden className="text-base">↗</span>
+                            </>
+                        )}
                     </button>
                 </form>
 

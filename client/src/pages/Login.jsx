@@ -1,27 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-
 import { Link, useLocation, useNavigate } from 'react-router';
 import useAuth from '../hooks/useAuth';
 import SocialLogin from './SocialLogin';
+import toast from 'react-hot-toast';
 
 const Login = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const { signInUser } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
-
+    const [loading, setLoading] = useState(false);
 
     const handleLogin = (data) => {
-        console.log('form data', data);
+        setLoading(true);
         signInUser(data.email, data.password)
             .then(result => {
-                console.log(result.user)
-                navigate(location?.state || '/')
+                toast.success('Login successful!');
+                navigate(location?.state || '/');
             })
             .catch(error => {
-                console.log(error)
+                console.error(error);
+                const errorMessage = error.code === 'auth/invalid-credential'
+                    ? 'Invalid email or password'
+                    : error.message || 'Login failed';
+                toast.error(errorMessage);
             })
+            .finally(() => setLoading(false));
     }
 
     return (
@@ -75,9 +80,21 @@ const Login = () => {
                         {errors.password?.type === 'minLength' && <p className='text-sm text-rose-600'>Password must be 6 characters or longer</p>}
                     </div>
 
-                    <button className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border-none bg-gradient-to-r from-cyan-500 to-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-200/70 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-100">
-                        Login
-                        <span aria-hidden className="text-base">↗</span>
+                    <button
+                        disabled={loading}
+                        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border-none bg-gradient-to-r from-cyan-500 to-emerald-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-cyan-200/70 transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {loading ? (
+                            <>
+                                <span className="loading loading-spinner loading-sm"></span>
+                                Logging in...
+                            </>
+                        ) : (
+                            <>
+                                Login
+                                <span aria-hidden className="text-base">↗</span>
+                            </>
+                        )}
                     </button>
                 </form>
 
