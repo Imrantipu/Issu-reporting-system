@@ -10,7 +10,8 @@
     "seed:admin": "node src/seedAdmin.js",
     "seed:staff": "node src/seedStaff.js",
     "seed:citizen": "node src/seedCitizen.js",
-    "seed:all": "npm run seed:admin && npm run seed:staff && npm run seed:citizen"
+    "seed:issues": "node src/seedIssues.js",
+    "seed:all": "npm run seed:admin && npm run seed:staff && npm run seed:citizen && npm run seed:issues"
   },
   "dependencies": {
     "cors": "^2.8.5",
