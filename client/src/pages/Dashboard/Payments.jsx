@@ -2,6 +2,9 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import useAuth from '../../hooks/useAuth';
 import apiClient from '../../lib/apiClient';
+import { Download } from 'lucide-react';
+import { generateInvoice } from '../../utils/generateInvoice';
+import toast from 'react-hot-toast';
 
 const Payments = () => {
   const { user } = useAuth();
@@ -19,6 +22,16 @@ const Payments = () => {
   const totalRevenue = payments
     .filter((p) => p.status === 'completed')
     .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  const handleDownloadInvoice = (payment) => {
+    try {
+      generateInvoice(payment, payment.user);
+      toast.success('Invoice downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      toast.error('Failed to generate invoice');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -55,6 +68,7 @@ const Payments = () => {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Amount</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Date</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-700">Invoice</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -86,6 +100,16 @@ const Payments = () => {
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
                       {new Date(payment.createdAt).toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handleDownloadInvoice(payment)}
+                        className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-700 transition hover:-translate-y-0.5 hover:bg-cyan-100 hover:shadow-lg"
+                        title="Download Invoice"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Download
+                      </button>
                     </td>
                   </tr>
                 ))}

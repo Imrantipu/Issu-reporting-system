@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAuth from '../hooks/useAuth';
 import apiClient from '../lib/apiClient';
 import toast from 'react-hot-toast';
+import StripeCheckout from '../components/StripeCheckout';
 
 const statusStyles = {
   pending: 'bg-amber-50 text-amber-700',
@@ -30,6 +31,7 @@ const IssueDetails = () => {
   const queryClient = useQueryClient();
   const { user, loading: authLoading } = useAuth();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showBoostPayment, setShowBoostPayment] = useState(false);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['issue', id],
@@ -103,23 +105,6 @@ const IssueDetails = () => {
     },
   });
 
-  const boostMutation = useMutation({
-    mutationFn: async () => {
-      // Starts the boost payment intent; full Stripe flow still needed to confirm.
-      const res = await apiClient.post('/payments/boost-intent', { issueId: id });
-      return res.data;
-    },
-    onSuccess: () => {
-      toast.success('Boost payment initiated! Complete payment to apply priority.');
-      // TODO: Open Stripe payment modal here
-      queryClient.invalidateQueries({ queryKey: ['issue', id] });
-      queryClient.invalidateQueries({ queryKey: ['issues'] });
-    },
-    onError: (err) => {
-      const msg = err?.response?.data?.message || 'Boost failed';
-      toast.error(msg);
-    },
-  });
 
   const handleUpvote = () => {
     if (!user) {
@@ -144,7 +129,13 @@ const IssueDetails = () => {
       toast.info('This issue is already boosted');
       return;
     }
-    boostMutation.mutate();
+    setShowBoostPayment(true);
+  };
+
+  const handleBoostPaymentSuccess = () => {
+    setShowBoostPayment(false);
+    queryClient.invalidateQueries({ queryKey: ['issue', id] });
+    queryClient.invalidateQueries({ queryKey: ['issues'] });
   };
 
   const handleDelete = () => {
@@ -239,6 +230,25 @@ const IssueDetails = () => {
                     Delete
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Boost Payment Modal */}
+          {showBoostPayment && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+              <div className="mx-auto max-w-md w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Boost Issue Priority</h3>
+                <p className="text-sm text-slate-600 mb-6">
+                  Boost this issue to high priority. Boosted issues appear first in the list.
+                </p>
+                <StripeCheckout
+                  amount={100}
+                  type="boost"
+                  issueId={id}
+                  onSuccess={handleBoostPaymentSuccess}
+                  onCancel={() => setShowBoostPayment(false)}
+                />
               </div>
             </div>
           )}

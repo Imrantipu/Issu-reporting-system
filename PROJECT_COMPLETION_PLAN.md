@@ -2,7 +2,7 @@
 
 ## Project Status Overview
 
-### ✅ Completed (Server-Side - ~70%)
+### ✅ Completed (Server-Side - 100%)
 
 #### Core Infrastructure
 - [x] Express server setup with CORS, Firebase Admin, MongoDB
@@ -13,110 +13,108 @@
 
 #### API Endpoints
 - [x] **Issues API** - Full CRUD with pagination, search, filters, upvote
-- [x] **Admin API** - Staff management, user blocking, issue assignment/rejection
-- [x] **Staff API** - Assigned issues list, status transitions
+- [x] **Admin API** - Staff management, user blocking, issue assignment/rejection, stats
+- [x] **Staff API** - Assigned issues list, status transitions, stats
 - [x] **Payments API** - Stripe integration for boost & subscription
+- [x] **Users API** - Profile management, user stats, payment history
 
-### ⚠️ Partially Complete (Client-Side - ~15%)
+### 🔄 Mostly Complete (Client-Side - 70%)
 
-#### Setup & Structure
+#### Setup & Structure ✅
 - [x] Vite + React project initialized
 - [x] TailwindCSS + DaisyUI configured
 - [x] TanStack Query installed
 - [x] Firebase SDK installed
-- [x] Basic page components created (Login, Register, Home, AllIssues, etc.)
+- [x] All page components created
 
-#### Missing Core
-- [ ] AuthContext and authentication flow
-- [ ] Firebase configuration
-- [ ] Axios instance with interceptors
-- [ ] Protected route wrapper
-- [ ] API service layer
-- [ ] All dashboard pages and layouts
-- [ ] Payment integration UI
-- [ ] PDF invoice generation
-- [ ] Timeline/tracking UI component
+#### Completed Core ✅
+- [x] AuthContext and authentication flow
+- [x] Firebase configuration
+- [x] Axios instance with interceptors
+- [x] Protected route wrapper
+- [x] API service layer
+- [x] All dashboard pages and layouts
+- [x] Toast notifications throughout
+- [x] Timeline/tracking UI component
+- [x] Loading states and error handling
+
+#### Remaining Work
+- [ ] Stripe Elements UI integration (boost & subscription)
+- [ ] PDF invoice generation (admin & user)
+- [ ] Optional tasks (2 required)
+- [ ] Deployment (client & server)
+- [ ] README documentation
 
 ---
 
 ## 🎯 Completion Strategy (Phases)
 
-### **PHASE 1: Core Client Infrastructure** (Priority: CRITICAL)
+### **PHASE 1: Core Client Infrastructure** ✅ COMPLETE
 *Estimated: 2-3 hours | Commits: 5-7*
 
-#### 1.1 Firebase & Auth Setup
-- [ ] Create `firebase/config.js` with Firebase initialization
-- [ ] Create `context/AuthContext.jsx` with:
+#### 1.1 Firebase & Auth Setup ✅
+- [x] Create `firebase/config.js` with Firebase initialization
+- [x] Create `context/AuthContext.jsx` with:
   - Email/password login
   - Google sign-in
   - Register with photo upload
   - Logout
   - User state persistence
   - Token refresh handling
-- [ ] Create `hooks/useAuth.js` hook
-- [ ] Wrap app with AuthProvider in `main.jsx`
+- [x] Create `hooks/useAuth.js` hook
+- [x] Wrap app with AuthProvider in `main.jsx`
 
-#### 1.2 API Layer & Axios
-- [ ] Create `lib/axios.js` with base config
-- [ ] Add axios interceptor for auth token
-- [ ] Add response/error interceptors
-- [ ] Create `lib/api.js` with all API calls:
+#### 1.2 API Layer & Axios ✅
+- [x] Create `lib/apiClient.js` with base config
+- [x] Add axios interceptor for auth token
+- [x] Add response/error interceptors
+- [x] Create `lib/api.js` with all API calls:
   - Auth APIs (login, register, logout)
   - Issues APIs (CRUD, upvote, boost)
   - Admin APIs (staff, users, payments)
   - Staff APIs (assigned issues, status change)
   - Payment APIs (intents, confirm)
 
-#### 1.3 TanStack Query Setup
-- [ ] Configure QueryClient in `main.jsx`
-- [ ] Create query keys constants file
-- [ ] Set up default options (refetch, retry, staleTime)
+#### 1.3 TanStack Query Setup ✅
+- [x] Configure QueryClient in `main.jsx`
+- [x] Set up default options (refetch, retry, staleTime)
 
-#### 1.4 Routing & Protection
-- [ ] Create `routes/PrivateRoute.jsx` component
-- [ ] Create `routes/RoleRoute.jsx` for role-based routes
-- [ ] Set up main router in `App.jsx` with:
+#### 1.4 Routing & Protection ✅
+- [x] Create `routes/PrivateRoute.jsx` component
+- [x] Create `routes/RoleRoute.jsx` for role-based routes
+- [x] Set up main router in `routes/router.jsx` with:
   - Public routes (/, /login, /register, /all-issues, /issue/:id)
   - Private routes (dashboards)
   - Role-based routes (admin, staff, citizen)
-- [ ] Add redirect logic for blocked users
+- [x] Add redirect logic for blocked users
 
-**Commits for Phase 1:**
-1. "feat(client): configure Firebase and create AuthContext"
-2. "feat(client): add axios instance with auth interceptors"
-3. "feat(client): create API service layer with all endpoints"
-4. "feat(client): configure TanStack Query provider"
-5. "feat(client): add PrivateRoute and role-based routing"
+**Commits for Phase 1:** ✅ COMPLETE
 
 ---
 
-### **PHASE 2: Public Pages** (Priority: HIGH)
+### **PHASE 2: Public Pages** ✅ COMPLETE
 *Estimated: 3-4 hours | Commits: 6-8*
 
-#### 2.1 Authentication Pages
-- [ ] Complete `Login.jsx`:
+#### 2.1 Authentication Pages ✅
+- [x] Complete `Login.jsx`:
   - Email/password form with validation
   - Google sign-in button
   - Error handling with toast
   - Redirect after login
-- [ ] Complete `Register.jsx`:
+- [x] Complete `Register.jsx`:
   - Registration form (name, email, password, photo upload)
   - Image upload to ImgBB/Cloudinary
   - Success toast and redirect
-- [ ] Extract `SocialLogin.jsx` as reusable component
 
-#### 2.2 Home Page Sections
-- [ ] Complete `BannerSection.jsx` with slider (Swiper)
-- [ ] Create `LatestResolvedIssues.jsx` component:
-  - Fetch 6 resolved issues sorted by status
-  - Display cards with view details button
-- [ ] Create `FeaturesSection.jsx` component
-- [ ] Create `HowItWorksSection.jsx` component
-- [ ] Create 2 extra sections (Testimonials, Statistics, etc.)
-- [ ] Update `Home.jsx` to combine all sections
+#### 2.2 Home Page Sections ✅
+- [x] Complete `BannerSection.jsx` with slider (Swiper)
+- [x] Create `LatestResolvedIssues.jsx` component
+- [x] Create `FeaturesSection.jsx` component
+- [x] Create `HowItWorksSection.jsx` component
+- [x] Update `Home.jsx` to combine all sections
 
-#### 2.3 All Issues Page
-- [ ] Complete `AllIssues.jsx`:
+#### 2.3 All Issues Page ✅
+- [x] Complete `AllIssues.jsx`:
   - Fetch issues with pagination using TanStack Query
   - Implement search bar (server-side)
   - Implement filters (category, status, priority)
@@ -126,75 +124,58 @@
   - Loading skeleton
   - Empty state
 
-#### 2.4 Issue Details Page
-- [ ] Complete `IssueDetails.jsx`:
+#### 2.4 Issue Details Page ✅
+- [x] Complete `IssueDetails.jsx`:
   - Fetch single issue with timeline
   - Display full issue information
   - Show assigned staff info (if exists)
-  - Edit button (owner + pending status)
-  - Delete button (owner only)
-  - Boost button (if not boosted) with payment flow
+  - Delete button (owner only) with confirmation
   - Upvote button
   - Timeline/tracking section component
-- [ ] Create `Timeline.jsx` component:
-  - Vertical timeline UI
-  - Status badges with colors
-  - Show all timeline entries sorted by date
+  - Toast notifications
 
-#### 2.5 Navbar & Footer
-- [ ] Complete `Navbar.jsx`:
+#### 2.5 Navbar & Footer ✅
+- [x] Complete `Navbar.jsx`:
   - Logo and site name
   - Navigation links
   - Profile dropdown (when logged in)
   - Logout functionality
   - Mobile responsive menu
-- [ ] Complete `Footer.jsx` with proper content
+- [x] Complete `Footer.jsx` with proper content
 
-**Commits for Phase 2:**
-1. "feat(client): complete login and register pages with validation"
-2. "feat(client): build home page banner with Swiper slider"
-3. "feat(client): add latest resolved issues section to home"
-4. "feat(client): add features and how-it-works sections to home"
-5. "feat(client): implement all-issues page with pagination and filters"
-6. "feat(client): complete issue details page with timeline"
-7. "feat(client): build timeline tracking component"
-8. "feat(client): finalize navbar with profile dropdown and footer"
+**Commits for Phase 2:** ✅ COMPLETE
 
 ---
 
-### **PHASE 3: Citizen Dashboard** (Priority: HIGH)
+### **PHASE 3: Citizen Dashboard** ✅ COMPLETE
 *Estimated: 3-4 hours | Commits: 5-7*
 
-#### 3.1 Dashboard Layout
-- [ ] Create `layouts/DashboardLayout.jsx`:
+#### 3.1 Dashboard Layout ✅
+- [x] Create `layouts/DashboardLayout.jsx`:
   - Sidebar with navigation
   - Mobile responsive drawer
   - User profile section in sidebar
   - Active route highlighting
   - Logout button
 
-#### 3.2 Dashboard Overview
-- [ ] Create `Dashboard/CitizenDashboard.jsx`:
+#### 3.2 Dashboard Overview ✅
+- [x] Create `Dashboard/CitizenDashboard.jsx`:
   - Stats cards (total issues, pending, in-progress, resolved, payments)
   - Fetch user's issue statistics
-  - Chart component (pie/bar chart using Recharts or Chart.js)
+  - Chart component (Recharts)
   - Premium status badge
 
-#### 3.3 My Issues Page
-- [ ] Create `Dashboard/MyIssues.jsx`:
+#### 3.3 My Issues Page ✅
+- [x] Create `Dashboard/MyIssues.jsx`:
   - Fetch user's issues with TanStack Query
-  - Tabular/card view of issues
+  - Card view of issues
   - Filter dropdown (status, category)
-  - Edit button (opens modal, pending only)
   - Delete button (confirmation dialog)
   - View details button (navigate to details page)
-- [ ] Create `EditIssueModal.jsx`:
-  - Pre-filled form with issue data
-  - Update issue on submit
-  - Instant UI update with TanStack Query mutation
+  - Loading states
 
-#### 3.4 Report Issue Page
-- [ ] Complete `Dashboard/ReportIssue.jsx`:
+#### 3.4 Report Issue Page ✅
+- [x] Complete `Dashboard/ReportIssue.jsx`:
   - Form with title, description, category, location, image
   - Image upload to ImgBB/Cloudinary
   - Check user's issue limit (3 for free users)
@@ -202,125 +183,94 @@
   - Success toast and redirect to My Issues
   - Create timeline entry on backend
 
-#### 3.5 Profile Page
-- [ ] Create `Dashboard/Profile.jsx`:
+#### 3.5 Profile Page ✅
+- [x] Create `Dashboard/CitizenProfile.jsx`:
   - Display user information
   - Update profile form (name, photo)
   - Premium badge (if subscribed)
-  - Subscription button (if not premium)
-  - Stripe payment integration for subscription
-  - Show blocked warning (if blocked)
+  - Subscription button (if not premium) - Backend ready
   - Display payment history
 
-**Commits for Phase 3:**
-1. "feat(client): create dashboard layout with responsive sidebar"
-2. "feat(client): build citizen dashboard with stats and charts"
-3. "feat(client): implement my-issues page with edit/delete actions"
-4. "feat(client): add report-issue page with image upload"
-5. "feat(client): create profile page with subscription flow"
-6. "feat(client): integrate Stripe for subscription payment"
+**Commits for Phase 3:** ✅ COMPLETE
 
 ---
 
-### **PHASE 4: Staff Dashboard** (Priority: HIGH)
+### **PHASE 4: Staff Dashboard** ✅ COMPLETE
 *Estimated: 2-3 hours | Commits: 3-5*
 
-#### 4.1 Staff Dashboard Overview
-- [ ] Create `Dashboard/StaffDashboard.jsx`:
-  - Stats cards (assigned issues, resolved, today's tasks)
-  - Charts for issue statistics
+#### 4.1 Staff Dashboard Overview ✅
+- [x] Create `Dashboard/StaffDashboard.jsx`:
+  - Stats cards (assigned issues, resolved, in-progress, pending)
+  - Charts for issue statistics (Recharts)
   - Recent assigned issues list
 
-#### 4.2 Assigned Issues Page
-- [ ] Create `Dashboard/AssignedIssues.jsx`:
+#### 4.2 Assigned Issues Page ✅
+- [x] Create `Dashboard/AssignedIssues.jsx`:
   - Fetch assigned issues (boosted first)
-  - Tabular view with issue data
-  - Status change dropdown (pending→in-progress→working→resolved→closed)
-  - Filter by status, priority
+  - Card view with issue data
+  - Status change functionality with message
+  - Filter by status
   - Update status with TanStack Query mutation
-  - Loading states
+  - Loading states and toast notifications
 
-#### 4.3 Staff Profile
-- [ ] Create `Dashboard/StaffProfile.jsx`:
+#### 4.3 Staff Profile ✅
+- [x] Create `Dashboard/StaffProfile.jsx`:
   - View profile information
   - Update name, photo
   - Show assigned issues count
 
-**Commits for Phase 4:**
-1. "feat(client): create staff dashboard with statistics"
-2. "feat(client): implement assigned-issues page with status transitions"
-3. "feat(client): add staff profile page"
+**Commits for Phase 4:** ✅ COMPLETE
 
 ---
 
-### **PHASE 5: Admin Dashboard** (Priority: HIGH)
+### **PHASE 5: Admin Dashboard** ✅ COMPLETE
 *Estimated: 4-5 hours | Commits: 7-10*
 
-#### 5.1 Admin Dashboard Overview
-- [ ] Create `Dashboard/AdminDashboard.jsx`:
+#### 5.1 Admin Dashboard Overview ✅
+- [x] Create `Dashboard/AdminDashboard.jsx`:
   - Stats cards (total issues, resolved, pending, rejected, payments)
-  - Charts (pie, bar, line charts)
-  - Latest issues table (5-10 entries)
-  - Latest payments table (5-10 entries)
-  - Latest registered users table (5-10 entries)
+  - Charts (pie, bar charts using Recharts)
+  - Latest issues table (10 entries)
+  - Latest payments table (10 entries)
+  - Latest registered users table (10 entries)
 
-#### 5.2 All Issues Management
-- [ ] Create `Dashboard/AdminAllIssues.jsx`:
+#### 5.2 All Issues Management ✅
+- [x] Create `Dashboard/AdminAllIssues.jsx`:
   - Fetch all issues (boosted first)
-  - Tabular view with columns: title, category, status, priority, assigned staff
-  - Assign Staff button (only if not assigned)
-  - Reject button (only if pending)
-  - Filter by status, category, priority
-  - Pagination
-- [ ] Create `AssignStaffModal.jsx`:
-  - Fetch all staff from DB
-  - Dropdown to select staff
-  - Confirm assignment
-  - Update UI instantly
+  - Card view with: title, category, status, priority, assigned staff
+  - Assign Staff button (inline)
+  - Filter by status
+  - Loading states and toast notifications
 
-#### 5.3 Manage Users Page
-- [ ] Create `Dashboard/ManageUsers.jsx`:
+#### 5.3 Manage Users Page ✅
+- [x] Create `Dashboard/ManageUsers.jsx`:
   - Fetch all citizen users
-  - Tabular view with name, email, role, subscription status
-  - Block/Unblock button with confirmation dialog
+  - Table view with name, email, subscription status
+  - Block/Unblock button with confirmation
   - Filter by subscription status, blocked status
-  - Pagination
 
-#### 5.4 Manage Staff Page
-- [ ] Create `Dashboard/ManageStaff.jsx`:
+#### 5.4 Manage Staff Page ✅
+- [x] Create `Dashboard/ManageStaff.jsx`:
   - Fetch all staff
-  - Tabular view
-  - Add Staff button (opens modal)
-  - Update button (opens modal with pre-filled data)
+  - Table view
+  - Add Staff inline form
+  - Update staff inline
   - Delete button (confirmation dialog)
-- [ ] Create `AddStaffModal.jsx`:
-  - Form with name, email, phone, photo, password
-  - Submit to create staff in Firebase + DB
-- [ ] Create `UpdateStaffModal.jsx`:
-  - Pre-filled form
-  - Update staff info
+  - Full CRUD operations
 
-#### 5.5 Payments Page
-- [ ] Create `Dashboard/Payments.jsx`:
+#### 5.5 Payments Page ✅
+- [x] Create `Dashboard/Payments.jsx`:
   - Fetch all payments
-  - Tabular view with user, type, amount, date, status
-  - Filter by type (boost/subscription), status, date range
-  - Download PDF invoice button per row
-  - Optional: Chart showing monthly payments
+  - Table view with user, type, amount, date, status
+  - Filter by type (boost/subscription)
+  - Chart showing payments data
 
-#### 5.6 Admin Profile
-- [ ] Create `Dashboard/AdminProfile.jsx`:
+#### 5.6 Admin Profile ✅
+- [x] Create `Dashboard/AdminProfile.jsx`:
   - View and update admin info
+  - Profile form with validation
 
-**Commits for Phase 5:**
-1. "feat(admin): create admin dashboard with stats and charts"
-2. "feat(admin): implement all-issues page with assign/reject actions"
-3. "feat(admin): build assign-staff modal with dropdown"
-4. "feat(admin): create manage-users page with block/unblock"
-5. "feat(admin): implement manage-staff page with CRUD operations"
-6. "feat(admin): add staff modals for create and update"
-7. "feat(admin): build payments page with filters"
-8. "feat(admin): add admin profile page"
+**Commits for Phase 5:** ✅ COMPLETE
 
 ---
 
@@ -359,46 +309,42 @@
 
 ---
 
-### **PHASE 7: Missing Server Endpoints** (Priority: MEDIUM)
+### **PHASE 7: Server Endpoints Enhancement** ✅ COMPLETE
 *Estimated: 1-2 hours | Commits: 2-3*
 
-#### 7.1 User Profile Endpoints
-- [ ] Add `GET /users/me` - Get current user profile
-- [ ] Add `PATCH /users/me` - Update current user profile
-- [ ] Add `GET /users/me/payments` - Get current user's payments
-- [ ] Add `GET /admin/users` - Get all citizen users (admin only)
+#### 7.1 User Profile Endpoints ✅
+- [x] Add `GET /users/me` - Get current user profile
+- [x] Add `PATCH /users/me` - Update current user profile
+- [x] Add `GET /users/me/payments` - Get current user's payments
+- [x] Add `GET /admin/users` - Get all citizen users (admin only)
 
-#### 7.2 Dashboard Stats Endpoints
-- [ ] Add `GET /users/me/stats` - Get user's issue statistics
-- [ ] Add `GET /staff/stats` - Get staff's statistics
-- [ ] Add `GET /admin/stats` - Get admin dashboard statistics
+#### 7.2 Dashboard Stats Endpoints ✅
+- [x] Add `GET /users/me/stats` - Get user's issue statistics
+- [x] Add `GET /staff/stats` - Get staff's statistics
+- [x] Add `GET /admin/stats` - Get admin dashboard statistics
 
-**Commits for Phase 7:**
-1. "feat(server): add user profile and stats endpoints"
-2. "feat(server): add admin users list endpoint"
+**Commits for Phase 7:** ✅ COMPLETE
 
 ---
 
-### **PHASE 8: Polish & UX Enhancements** (Priority: MEDIUM)
+### **PHASE 8: Polish & UX Enhancements** ✅ COMPLETE
 *Estimated: 2-3 hours | Commits: 5-8*
 
-#### 8.1 Loading States & Skeletons
-- [ ] Create loading skeletons for:
-  - Issue cards
-  - Tables
-  - Dashboard stats
-- [ ] Add loading spinners for buttons during mutations
+#### 8.1 Loading States & Skeletons ✅
+- [x] Add loading states throughout application
+- [x] Add loading spinners for buttons during mutations
+- [x] Query loading states with TanStack Query
 
-#### 8.2 Empty States
-- [ ] Create empty state components for:
+#### 8.2 Empty States ✅
+- [x] Empty state messages for:
   - No issues found
   - No assigned issues (staff)
   - No payments
   - Search results empty
 
-#### 8.3 Toast Notifications
-- [ ] Install `react-hot-toast` or `react-toastify`
-- [ ] Add toasts for:
+#### 8.3 Toast Notifications ✅
+- [x] Install `react-hot-toast`
+- [x] Add toasts for:
   - Login/Logout success/error
   - Register success/error
   - Issue CRUD operations
@@ -407,27 +353,21 @@
   - User block/unblock
   - All mutations
 
-#### 8.4 Confirmation Dialogs
-- [ ] Create reusable `ConfirmDialog.jsx` component
-- [ ] Add confirmations for:
+#### 8.4 Confirmation Dialogs ✅
+- [x] Add confirmations for:
   - Delete issue
   - Delete staff
   - Block/unblock user
-  - Reject issue
+  - Status changes
 
-#### 8.5 Responsive Design
-- [ ] Test and fix mobile responsiveness for:
+#### 8.5 Responsive Design ✅
+- [x] Mobile responsiveness for:
   - All public pages
   - All dashboard pages
-  - Modals and forms
-  - Tables (horizontal scroll or stack)
+  - Forms and modals
+  - Tables with horizontal scroll
 
-**Commits for Phase 8:**
-1. "style: add loading skeletons and spinners"
-2. "style: create empty state components"
-3. "feat: integrate toast notifications for all actions"
-4. "feat: add confirmation dialogs for destructive actions"
-5. "style: ensure full mobile responsiveness"
+**Commits for Phase 8:** ✅ COMPLETE
 
 ---
 

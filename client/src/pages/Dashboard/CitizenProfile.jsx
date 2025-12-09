@@ -3,12 +3,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAuth from '../../hooks/useAuth';
 import apiClient from '../../lib/apiClient';
 import toast from 'react-hot-toast';
-import { User, Mail, Phone, MapPin, CreditCard, Crown } from 'lucide-react';
+import { User, Mail, Phone, MapPin, CreditCard, Crown, Download } from 'lucide-react';
+import StripeCheckout from '../../components/StripeCheckout';
+import { generateInvoice } from '../../utils/generateInvoice';
 
 const CitizenProfile = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [showSubscriptionPayment, setShowSubscriptionPayment] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -56,22 +59,6 @@ const CitizenProfile = () => {
     },
   });
 
-  const subscriptionMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiClient.post('/payments/subscribe-intent');
-      return res.data;
-    },
-    onSuccess: (data) => {
-      toast.success('Subscription payment initiated! Complete payment to activate premium.');
-      // TODO: Open Stripe payment modal with clientSecret
-      console.log('Stripe client secret:', data.clientSecret);
-      queryClient.invalidateQueries({ queryKey: ['user-profile'] });
-    },
-    onError: (err) => {
-      const msg = err?.response?.data?.message || 'Subscription failed';
-      toast.error(msg);
-    },
-  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -88,7 +75,23 @@ const CitizenProfile = () => {
       toast.info('You already have a premium subscription');
       return;
     }
-    subscriptionMutation.mutate();
+    setShowSubscriptionPayment(true);
+  };
+
+  const handleSubscriptionPaymentSuccess = () => {
+    setShowSubscriptionPayment(false);
+    queryClient.invalidateQueries({ queryKey: ['user-profile'] });
+    queryClient.invalidateQueries({ queryKey: ['user-payments'] });
+  };
+
+  const handleDownloadInvoice = (payment) => {
+    try {
+      generateInvoice(payment, dbUser || user);
+      toast.success('Invoice downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      toast.error('Failed to generate invoice');
+    }
   };
 
   const payments = paymentsData || [];
@@ -272,11 +275,10 @@ const CitizenProfile = () => {
               <div className="flex-shrink-0">
                 <button
                   onClick={handleSubscribe}
-                  disabled={subscriptionMutation.isLoading}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-300/50 transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-300/50 transition hover:-translate-y-0.5 hover:shadow-xl"
                 >
                   <CreditCard className="h-4 w-4" />
-                  {subscriptionMutation.isLoading ? 'Processing...' : 'Subscribe Now'}
+                  Subscribe Now
                 </button>
               </div>
             </div>
@@ -294,28 +296,59 @@ const CitizenProfile = () => {
                 key={payment._id}
                 className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4"
               >
-                <div>
+                <div className="flex-1">
                   <p className="font-semibold text-slate-900">
                     {payment.type === 'subscription' ? 'Premium Subscription' : 'Issue Boost'}
                   </p>
                   <p className="text-sm text-slate-600">{new Date(payment.createdAt).toLocaleDateString()}</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-slate-900">{payment.amount} BDT</p>
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${
-                      payment.status === 'completed'
-                        ? 'bg-emerald-50 text-emerald-700'
-                        : payment.status === 'pending'
-                        ? 'bg-amber-50 text-amber-700'
-                        : 'bg-rose-50 text-rose-700'
-                    }`}
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="font-bold text-slate-900">{payment.amount} BDT</p>
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        payment.status === 'completed'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : payment.status === 'pending'
+                          ? 'bg-amber-50 text-amber-700'
+                          : 'bg-rose-50 text-rose-700'
+                      }`}
+                    >
+                      {payment.status}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleDownloadInvoice(payment)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-700 transition hover:-translate-y-0.5 hover:bg-cyan-100 hover:shadow-lg"
+                    title="Download Invoice"
                   >
-                    {payment.status}
-                  </span>
+                    <Download className="h-3.5 w-3.5" />
+                    Invoice
+                  </button>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Payment Modal */}
+      {showSubscriptionPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="mx-auto max-w-md w-full rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Crown className="h-6 w-6 text-amber-600" />
+              <h3 className="text-xl font-bold text-slate-900">Premium Subscription</h3>
+            </div>
+            <p className="text-sm text-slate-600 mb-6">
+              Get unlimited issue reporting and premium support
+            </p>
+            <StripeCheckout
+              amount={1000}
+              type="subscription"
+              onSuccess={handleSubscriptionPaymentSuccess}
+              onCancel={() => setShowSubscriptionPayment(false)}
+            />
           </div>
         </div>
       )}
