@@ -7,7 +7,10 @@
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
-    "seed:admin": "node src/seedAdmin.js"
+    "seed:admin": "node src/seedAdmin.js",
+    "seed:staff": "node src/seedStaff.js",
+    "seed:citizen": "node src/seedCitizen.js",
+    "seed:all": "npm run seed:admin && npm run seed:staff && npm run seed:citizen"
   },
   "dependencies": {
     "cors": "^2.8.5",
